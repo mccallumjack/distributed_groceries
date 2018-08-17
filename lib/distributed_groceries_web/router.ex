@@ -5,7 +5,8 @@ defmodule DistributedGroceriesWeb.Router do
     plug :accepts, ["json"]
   end
 
-  scope "/api", DistributedGroceriesWeb do
+  scope "/", DistributedGroceriesWeb do
     pipe_through :api
+    resources "/grocery_lists", GroceryListsController, only: [:create, :update, :show]
   end
 end
