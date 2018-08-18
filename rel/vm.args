@@ -1,0 +1,3 @@
+-name distributed_groceries@${CONTAINER_IP}
+-smp auto
+-setcookie my_cookie

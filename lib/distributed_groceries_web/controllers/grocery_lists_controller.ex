@@ -3,7 +3,7 @@ defmodule DistributedGroceriesWeb.GroceryListsController do
 
   def create(conn, %{"name" => name}) do
     case lookup_pid(name) do
-      nil ->
+      :undefined  ->
         {:ok, pid} = Agent.start(fn -> %{} end)
         register_pid(pid, name)
         json(conn, "Success!: #{name} was created")
@@ -14,7 +14,7 @@ defmodule DistributedGroceriesWeb.GroceryListsController do
 
   def update(conn, %{"id" => name, "item" => item, "quantity" => num}) do
     case lookup_pid(name) do
-      nil ->
+      :undefined ->
         json(conn, "#{name} not found")
       pid ->
         Agent.update(pid, fn state -> Map.put(state, item, num) end)
@@ -24,7 +24,7 @@ defmodule DistributedGroceriesWeb.GroceryListsController do
 
   def show(conn, %{"id" => name}) do
     case lookup_pid(name) do
-      nil ->
+      :undefined ->
         json(conn, "#{name} not found")
       pid ->
         json(conn, Agent.get(pid, fn state -> state end))
@@ -32,12 +32,10 @@ defmodule DistributedGroceriesWeb.GroceryListsController do
   end
 
   defp lookup_pid(name) do
-    name
-    |> String.to_atom
-    |> GenServer.whereis
+    :global.whereis_name({:grocery_list, name})
   end
 
   defp register_pid(pid, name) do
-    Process.register(pid, String.to_atom(name))
+    :global.register_name({:grocery_list, name}, pid)
   end
 end

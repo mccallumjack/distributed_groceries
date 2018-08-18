@@ -6,12 +6,11 @@ defmodule DistributedGroceries.Application do
   def start(_type, _args) do
     import Supervisor.Spec
 
+    connect_to_cluster()
+
     # Define workers and child supervisors to be supervised
     children = [
-      # Start the endpoint when the application starts
       supervisor(DistributedGroceriesWeb.Endpoint, []),
-      # Start your own worker by calling: DistributedGroceries.Worker.start_link(arg1, arg2, arg3)
-      # worker(DistributedGroceries.Worker, [arg1, arg2, arg3]),
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
@@ -26,4 +25,23 @@ defmodule DistributedGroceries.Application do
     DistributedGroceriesWeb.Endpoint.config_change(changed, removed)
     :ok
   end
+
+  def connect_to_cluster do
+    # Docker internal DNS lookup
+    {string, _} = System.cmd("nslookup", ["tasks.distributed_groceries_app"])
+
+    # Fetch IPs from String
+    ips =
+      Regex.scan(~r/10\.[0-9]\.[0-9]\.\d{1,}/, string)
+      |> List.flatten
+      |> Enum.reject(
+        fn x -> x == System.get_env("CONTAINER_IP")
+      end)
+
+    # Connect to Nodes
+    Enum.map(ips, fn ip ->
+      Node.connect(:"distributed_groceries@#{ip}")
+    end)
+  end
+
 end

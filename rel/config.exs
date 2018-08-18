@@ -3,7 +3,8 @@ use Mix.Releases.Config
 environment :prod do
   set include_erts: true
   set include_src: false
-  set cookie: :"simple_cookie"
+  set vm_args: "rel/vm.args"
+  set pre_configure_hooks: "rel/hooks/pre_configure.d"
 end
 
 release :distributed_groceries do
@@ -12,4 +13,3 @@ release :distributed_groceries do
     :runtime_tools
   ]
 end
-
